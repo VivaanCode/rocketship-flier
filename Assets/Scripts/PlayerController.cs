@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
     private Label scoreText;
 
     private float elapsedTime = 0f;
-    private float score = 0f;
+    public int score = 0;
     public float scoreMult = 10f;
 
     public GameObject explosionEffect;
@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        score = PlayerPrefs.GetInt("SavedScore", 0);
         rb = GetComponent<Rigidbody2D>();
         scoreText = uiDocument.rootVisualElement.Q<Label>("ScoreLabel");
         restartButton = uiDocument.rootVisualElement.Q<Button>("RestartButton");
@@ -96,9 +97,21 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        SaveScore();
         Destroy(gameObject);
         Instantiate(explosionEffect, transform.position, transform.rotation);
         restartButton.style.display = DisplayStyle.Flex;
+    }
+
+    public void SaveScore()
+    {
+        PlayerPrefs.SetInt("SavedScore", score);
+        PlayerPrefs.Save(); 
+    }
+
+    void OnApplicationQuit()
+    {
+        SaveScore();
     }
 
     void ReloadScene()
