@@ -9,11 +9,18 @@ public class PlayerController : MonoBehaviour
     public float ThrustForce = 1.7f;
     public float MaxSpeed = 9.5f;
     public GameObject boosterFlame;
+
+    public float spawnRangeX = 5f;
+    public float spawnRangeY = 3.5f;
+    public float minSpawnDistance = 2f;
+
     Rigidbody2D rb;
 
     private Button restartButton;
 
     public UIDocument uiDocument;
+
+    public GameObject collectable;
 
     private Label scoreText;
 
@@ -22,6 +29,8 @@ public class PlayerController : MonoBehaviour
     public float scoreMult = 10f;
 
     public GameObject explosionEffect;
+
+    public ParticleSystem speedParticles;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -39,14 +48,13 @@ public class PlayerController : MonoBehaviour
     {
         
         elapsedTime += Time.deltaTime;
-        score = Mathf.FloorToInt(elapsedTime * scoreMult);
         scoreText.text = "Score: " + score;
         //Debug.Log("score: "+ score);
 
         if (Mouse.current.leftButton.isPressed)
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            //Debug.Log("Mouse Position: " + mousePos);
+            Debug.Log("Mouse Position: " + mousePos);
             Vector2 direction = (mousePos - transform.position).normalized;
             transform.up = direction;
             rb.AddForce(direction * ThrustForce);
@@ -60,11 +68,30 @@ public class PlayerController : MonoBehaviour
         if (Mouse.current.leftButton.wasPressedThisFrame)
             {
                 boosterFlame.SetActive(true);
+                //if (rb.linearVelocity.magnitude >= MaxSpeed / 1.5){
+                    speedParticles.Play();
+                //} else
+            //{
+            //   speedParticles.SetActive(false);
+            //}
             }
         else if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
                 boosterFlame.SetActive(false);
+                speedParticles.Stop();
             }
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Collectable"))
+        {
+            Destroy(other.gameObject);
+            score++;
+            float randomX = Random.Range(-spawnRangeX, spawnRangeX);
+            float randomY = Random.Range(-spawnRangeY, spawnRangeY);
+            Instantiate(collectable, new Vector3(randomX, randomY, 0), Quaternion.identity);
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
